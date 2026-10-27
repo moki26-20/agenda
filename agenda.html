@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenda Kindle</title>
+<style>
+  * { -webkit-box-sizing: border-box; box-sizing: border-box; }
+  body { margin: 0; padding: 10px; background: #fff; color: #000; font-family: Georgia, "Times New Roman", serif; font-size: 20px; line-height: 1.3; }
+
+  /* ---- navigazione ---- */
+  .nav { width: 100%; border-collapse: separate; border-spacing: 0; border: 3px solid #000; margin-bottom: 14px; }
+  .nav td { text-align: center; padding: 0; border-right: 2px solid #000; }
+  .nav td.last { border-right: 0; }
+  .nav a { display: block; padding: 13px 0 11px 0; color: #000; text-decoration: none; font-weight: bold; font-size: 16px; letter-spacing: 1px; }
+  .nav td.on { background: #000; }
+  .nav td.on a { color: #fff; }
+
+  .page { display: none; }
+
+  /* ---- riquadri ---- */
+  .card { border: 3px solid #000; border-radius: 10px; padding: 12px; margin: 0 0 16px 0; background: #fff; -webkit-box-shadow: 4px 4px 0 #000; box-shadow: 4px 4px 0 #000; }
+  .tag { display: inline-block; background: #000; color: #fff; font-size: 15px; font-weight: bold; letter-spacing: 2px; padding: 3px 12px; margin: -26px 0 8px -4px; border-radius: 6px; text-transform: uppercase; }
+  .cardwrap { padding-top: 16px; }
+
+  /* ---- intestazione data ---- */
+  .hero { background: #000; color: #fff; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+  .hero .dow { font-size: 22px; letter-spacing: 6px; text-transform: uppercase; }
+  .hero .num { font-size: 108px; font-weight: bold; line-height: 1; margin: 2px 0; }
+  .hero .mon { font-size: 30px; }
+  .hero .clock { font-size: 40px; font-weight: bold; margin-top: 8px; border-top: 2px solid #fff; padding-top: 8px; }
+  .meta { font-size: 17px; margin: 4px 0 8px 0; }
+
+  .bar { border: 3px solid #000; height: 22px; border-radius: 11px; overflow: hidden; background: #fff; margin: 6px 0; }
+  .bar div { height: 100%; background: #000; }
+
+  .quote { font-style: italic; font-size: 22px; text-align: center; padding: 6px 4px; }
+  .quote small { display: block; font-size: 14px; font-style: normal; letter-spacing: 2px; margin-top: 4px; }
+
+  h1 { font-size: 30px; margin: 4px 0 10px 0; padding-bottom: 6px; border-bottom: 4px double #000; }
+  .count { float: right; font-size: 20px; border: 2px solid #000; border-radius: 14px; padding: 0 12px; margin-top: 4px; }
+
+  /* ---- campi e bottoni ---- */
+  input[type=text], textarea { width: 100%; font-size: 21px; padding: 10px; border: 3px solid #000; border-radius: 8px; font-family: Georgia, serif; background: #fff; color: #000; margin-bottom: 8px; }
+  textarea { height: 110px; }
+  .btn { display: inline-block; border: 3px solid #000; border-radius: 8px; padding: 9px 16px; margin: 4px 6px 4px 0; font-size: 18px; font-weight: bold; color: #000; text-decoration: none; background: #fff; }
+  .btn.dark { background: #000; color: #fff; }
+  .chips a { display: inline-block; border: 2px solid #000; border-radius: 18px; padding: 5px 14px; margin: 4px 6px 4px 0; font-size: 17px; color: #000; text-decoration: none; }
+
+  /* ---- liste ---- */
+  ul { list-style: none; margin: 8px 0; padding: 0; border-top: 2px solid #000; }
+  li { border-bottom: 1px dashed #000; padding: 10px 2px; font-size: 23px; overflow: hidden; }
+  li a { color: #000; text-decoration: none; }
+  li.empty { font-size: 17px; font-style: italic; border-bottom: 0; }
+  .box { display: inline-block; width: 30px; height: 30px; border: 3px solid #000; border-radius: 6px; text-align: center; line-height: 24px; margin-right: 12px; vertical-align: middle; font-size: 22px; font-weight: bold; }
+  .box.f { background: #000; color: #fff; }
+  .done { text-decoration: line-through; color: #666; }
+  .del { float: right; border: 2px solid #000; border-radius: 6px; padding: 0 12px; font-weight: bold; font-size: 20px; margin-left: 8px; }
+
+  .note { border: 2px solid #000; border-left: 10px solid #000; border-radius: 6px; padding: 8px 10px; margin: 10px 0; white-space: pre-wrap; font-size: 21px; }
+  .note .when { font-size: 14px; letter-spacing: 1px; margin-bottom: 4px; }
+
+  /* ---- calendario ---- */
+  .cal { width: 100%; border-collapse: collapse; margin-top: 8px; border: 3px solid #000; }
+  .cal th { background: #000; color: #fff; padding: 8px 0; font-size: 18px; }
+  .cal td { border: 1px solid #000; text-align: center; padding: 11px 0; font-size: 22px; }
+  .cal td.we { background: #e4e4e4; }
+  .cal td.today { background: #000; color: #fff; font-weight: bold; }
+  .cal td.ev { border-bottom: 7px double #000; }
+
+  /* ---- scadenze / abitudini ---- */
+  .days { float: right; font-weight: bold; font-size: 18px; border: 2px solid #000; border-radius: 6px; padding: 0 8px; margin-left: 8px; }
+  .days.hot { background: #000; color: #fff; }
+  .wk { width: 100%; border-collapse: collapse; margin: 4px 0 12px 0; }
+  .wk td { text-align: center; padding: 0; }
+  .wk .hd { font-size: 14px; letter-spacing: 1px; }
+  .wk a { display: block; margin: 2px; border: 3px solid #000; border-radius: 6px; height: 38px; line-height: 32px; font-size: 22px; font-weight: bold; color: #000; text-decoration: none; }
+  .wk a.f { background: #000; color: #fff; }
+  .wk a.t { border-width: 5px; }
+  .hname { font-size: 23px; font-weight: bold; }
+
+  /* ---- calcolatrice ---- */
+  .disp { border: 3px solid #000; border-radius: 8px; text-align: right; font-size: 44px; font-weight: bold; padding: 8px 12px; margin-bottom: 6px; min-height: 66px; overflow: hidden; }
+  .disp small { display: block; font-size: 16px; font-weight: normal; min-height: 20px; }
+  .calc { width: 100%; border-collapse: separate; border-spacing: 5px; }
+  .calc td { padding: 0; }
+  .calc a { display: block; text-align: center; border: 3px solid #000; border-radius: 8px; padding: 14px 0; font-size: 28px; font-weight: bold; color: #000; text-decoration: none; background: #fff; }
+  .calc a.op { background: #000; color: #fff; }
+  .small { font-size: 15px; color: #333; }
+</style>
+</head>
+<body>
+
+<table class="nav"><tr>
+  <td id="n_oggi"><a href="#" onclick="show('oggi');return false;">OGGI</a></td>
+  <td id="n_spesa"><a href="#" onclick="show('spesa');return false;">SPESA</a></td>
+  <td id="n_note"><a href="#" onclick="show('note');return false;">NOTE</a></td>
+  <td id="n_mese"><a href="#" onclick="show('mese');return false;">MESE</a></td>
+  <td id="n_piu" class="last"><a href="#" onclick="show('piu');return false;">PI&Ugrave;</a></td>
+</tr></table>
+
+<!-- ================= OGGI ================= -->
+<div id="p_oggi" class="page">
+  <div class="hero">
+    <div class="dow" id="giorno"></div>
+    <div class="num" id="num"></div>
+    <div class="mon" id="mon"></div>
+    <div class="clock" id="ora"></div>
+  </div>
+
+  <div class="card cardwrap">
+    <span class="tag">Anno</span>
+    <div class="meta" id="extra"></div>
+    <div class="bar"><div id="anno_bar" style="width:0%"></div></div>
+    <div class="small" id="anno_txt"></div>
+    <a href="#" class="btn" onclick="renderOggi();return false;">Aggiorna ora</a>
+  </div>
+
+  <div class="card cardwrap">
+    <span class="tag">Pensiero</span>
+    <div class="quote" id="quote"></div>
+  </div>
+
+  <div class="card cardwrap">
+    <span class="tag">Da fare</span>
+    <span class="count" id="todo_cnt">0/0</span>
+    <input type="text" id="todo_in" placeholder="Nuova cosa da fare...">
+    <a href="#" class="btn dark" onclick="addTodo();return false;">+ Aggiungi</a>
+    <a href="#" class="btn" onclick="clearDone('todo');return false;">Togli fatti</a>
+    <ul id="todo_ul"></ul>
+  </div>
+
+  <div class="card cardwrap" id="prossime_card">
+    <span class="tag">In arrivo</span>
+    <div id="prossime"></div>
+  </div>
+</div>
+
+<!-- ================= SPESA ================= -->
+<div id="p_spesa" class="page">
+  <h1>Lista della spesa <span class="count" id="spesa_cnt">0/0</span></h1>
+  <div class="card">
+    <input type="text" id="spesa_in" placeholder="Es. latte, pane...">
+    <a href="#" class="btn dark" onclick="addSpesa();return false;">+ Aggiungi</a>
+    <div class="small" style="margin-top:6px;">Aggiunta rapida:</div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="card">
+    <ul id="spesa_ul" style="margin-top:0;"></ul>
+    <a href="#" class="btn" onclick="clearDone('spesa');return false;">Togli i presi</a>
+    <a href="#" class="btn" onclick="clearAll('spesa');return false;">Svuota tutto</a>
+    <div class="small">Tocca una voce per segnarla come presa.</div>
+  </div>
+</div>
+
+<!-- ================= NOTE ================= -->
+<div id="p_note" class="page">
+  <h1>Note</h1>
+  <div class="card">
+    <textarea id="note_in" placeholder="Scrivi una nota..."></textarea>
+    <a href="#" class="btn dark" onclick="addNote();return false;">Salva nota</a>
+  </div>
+  <div id="note_list"></div>
+</div>
+
+<!-- ================= MESE ================= -->
+<div id="p_mese" class="page">
+  <h1 id="mese_tit"></h1>
+  <a href="#" class="btn" onclick="meseMove(-1);return false;">&lt; Prec</a>
+  <a href="#" class="btn dark" onclick="meseMove(0);return false;">Oggi</a>
+  <a href="#" class="btn" onclick="meseMove(1);return false;">Succ &gt;</a>
+  <div id="cal"></div>
+  <div class="small" style="margin-top:6px;">Il doppio trattino sotto un giorno indica una scadenza.</div>
+  <div id="mese_ev"></div>
+</div>
+
+<!-- ================= PIU ================= -->
+<div id="p_piu" class="page">
+  <h1>Strumenti</h1>
+  <a href="#" class="btn" id="s_scad" onclick="sub('scad');return false;">Scadenze</a>
+  <a href="#" class="btn" id="s_abit" onclick="sub('abit');return false;">Abitudini</a>
+  <a href="#" class="btn" id="s_calc" onclick="sub('calc');return false;">Calcolatrice</a>
+
+  <!-- scadenze -->
+  <div id="sub_scad" style="display:none;margin-top:10px;">
+    <div class="card cardwrap">
+      <span class="tag">Nuova scadenza</span>
+      <input type="text" id="sc_t" placeholder="Cosa? (es. Compleanno Anna)">
+      <input type="text" id="sc_d" placeholder="Data: GG/MM/AAAA oppure GG/MM">
+      <a href="#" class="btn dark" onclick="addScad();return false;">+ Aggiungi</a>
+      <div class="small" id="sc_err"></div>
+    </div>
+    <div class="card cardwrap">
+      <span class="tag">Conto alla rovescia</span>
+      <ul id="scad_ul" style="margin-top:0;"></ul>
+    </div>
+  </div>
+
+  <!-- abitudini -->
+  <div id="sub_abit" style="display:none;margin-top:10px;">
+    <div class="card cardwrap">
+      <span class="tag">Nuova abitudine</span>
+      <input type="text" id="ab_in" placeholder="Es. Bere acqua, Leggere, Camminare">
+      <a href="#" class="btn dark" onclick="addAbit();return false;">+ Aggiungi</a>
+    </div>
+    <div class="card cardwrap">
+      <span class="tag">Questa settimana</span>
+      <div id="abit_list"></div>
+    </div>
+  </div>
+
+  <!-- calcolatrice -->
+  <div id="sub_calc" style="display:none;margin-top:10px;">
+    <div class="card">
+      <div class="disp"><small id="c_op"></small><span id="c_disp">0</span></div>
+      <table class="calc">
+        <tr>
+          <td><a href="#" onclick="cClear();return false;">C</a></td>
+          <td><a href="#" onclick="cNeg();return false;">+/-</a></td>
+          <td><a href="#" onclick="cPct();return false;">%</a></td>
+          <td><a href="#" class="op" onclick="cOp('/');return false;">&divide;</a></td>
+        </tr>
+        <tr>
+          <td><a href="#" onclick="cNum('7');return false;">7</a></td>
+          <td><a href="#" onclick="cNum('8');return false;">8</a></td>
+          <td><a href="#" onclick="cNum('9');return false;">9</a></td>
+          <td><a href="#" class="op" onclick="cOp('*');return false;">&times;</a></td>
+        </tr>
+        <tr>
+          <td><a href="#" onclick="cNum('4');return false;">4</a></td>
+          <td><a href="#" onclick="cNum('5');return false;">5</a></td>
+          <td><a href="#" onclick="cNum('6');return false;">6</a></td>
+          <td><a href="#" class="op" onclick="cOp('-');return false;">&minus;</a></td>
+        </tr>
+        <tr>
+          <td><a href="#" onclick="cNum('1');return false;">1</a></td>
+          <td><a href="#" onclick="cNum('2');return false;">2</a></td>
+          <td><a href="#" onclick="cNum('3');return false;">3</a></td>
+          <td><a href="#" class="op" onclick="cOp('+');return false;">+</a></td>
+        </tr>
+        <tr>
+          <td colspan="2"><a href="#" onclick="cNum('0');return false;">0</a></td>
+          <td><a href="#" onclick="cDot();return false;">,</a></td>
+          <td><a href="#" class="op" onclick="cEq();return false;">=</a></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+var GIORNI = ['Domenica','Luned\u00ec','Marted\u00ec','Mercoled\u00ec','Gioved\u00ec','Venerd\u00ec','Sabato'];
+var GSHORT = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+var MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+var CHIPS = ['Latte','Pane','Uova','Pasta','Frutta','Verdura','Carne','Pesce','Formaggio','Caff\u00e8','Acqua','Carta igienica'];
+var PENSIERI = [
+  'Chi va piano va sano e va lontano.',
+  'Il mattino ha l\'oro in bocca.',
+  'Una rondine non fa primavera.',
+  'Ogni cosa a suo tempo.',
+  'Chi bene comincia \u00e8 a met\u00e0 dell\'opera.',
+  'Non rimandare a domani quello che puoi fare oggi.',
+  'Chi la dura la vince.',
+  'Meglio tardi che mai.',
+  'L\'appetito vien mangiando.',
+  'Dove c\'\u00e8 la volont\u00e0 c\'\u00e8 la strada.',
+  'Goccia dopo goccia si scava la roccia.',
+  'Roma non fu fatta in un giorno.',
+  'Il tempo \u00e8 galantuomo.',
+  'Chi cerca trova.',
+  'Dopo la pioggia viene il sereno.',
+  'Un buon inizio fa un buon giorno.',
+  'Poco alla volta si fa tanta strada.',
+  'Chi semina raccoglie.',
+  'La calma \u00e8 la virt\u00f9 dei forti.',
+  'Ride bene chi ride ultimo.',
+  'Ogni giorno ha la sua pena, ma anche la sua gioia.',
+  'Il bello viene a chi sa aspettare.',
+  'Fai oggi una cosa che domani ti ringrazier\u00e0.',
+  'Un passo alla volta.',
+  'La pazienza \u00e8 la virt\u00f9 dei saggi.',
+  'Chi non risica non rosica.',
+  'Tutto passa, anche questa giornata.',
+  'L\'unione fa la forza.',
+  'Dormi su un problema e al mattino sar\u00e0 pi\u00f9 piccolo.',
+  'Dopo il lavoro, il riposo.',
+  'Ogni giorno \u00e8 una pagina bianca.'
+];
+var mem = {};
+var viewY, viewM, subCur = 'scad';
+
+/* ---------- utilit\u00e0 ---------- */
+function load(k) {
+  try { var v = window.localStorage.getItem('ag_' + k); if (v) return JSON.parse(v); } catch (e) {}
+  return mem[k] || [];
+}
+function save(k, v) {
+  mem[k] = v;
+  try { window.localStorage.setItem('ag_' + k, JSON.stringify(v)); } catch (e) {}
+}
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function el(id) { return document.getElementById(id); }
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function trim(s) { return s.replace(/^\s+|\s+$/g, ''); }
+function dkey(d) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function midnight(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function diffDays(a, b) { return Math.round((midnight(a) - midnight(b)) / 86400000); }
+
+function show(p) {
+  var all = ['oggi', 'spesa', 'note', 'mese', 'piu'];
+  for (var i = 0; i < all.length; i++) {
+    el('p_' + all[i]).style.display = (all[i] === p) ? 'block' : 'none';
+    el('n_' + all[i]).className = (all[i] === p ? 'on' : '') + (all[i] === 'piu' ? ' last' : '');
+  }
+  if (p === 'oggi') renderOggi();
+  if (p === 'spesa') { renderChips(); renderList('spesa'); }
+  if (p === 'note') renderNote();
+  if (p === 'mese') { var d = new Date(); viewY = d.getFullYear(); viewM = d.getMonth(); renderMese(); }
+  if (p === 'piu') sub(subCur);
+  try { window.scrollTo(0, 0); } catch (e) {}
+}
+
+/* ---------- OGGI ---------- */
+function isoWeek(d) {
+  var t = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  t.setDate(t.getDate() + 4 - (t.getDay() || 7));
+  var y0 = new Date(t.getFullYear(), 0, 1);
+  return Math.ceil((((t - y0) / 86400000) + 1) / 7);
+}
+function dayOfYear(d) { return diffDays(d, new Date(d.getFullYear(), 0, 0)); }
+function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+
+function renderOggi() {
+  var d = new Date();
+  el('giorno').innerHTML = GIORNI[d.getDay()];
+  el('num').innerHTML = d.getDate();
+  el('mon').innerHTML = MESI[d.getMonth()] + ' ' + d.getFullYear();
+  el('ora').innerHTML = pad(d.getHours()) + ':' + pad(d.getMinutes());
+
+  var doy = dayOfYear(d), tot = isLeap(d.getFullYear()) ? 366 : 365;
+  var pct = Math.round(doy * 100 / tot);
+  el('extra').innerHTML = 'Settimana <b>' + isoWeek(d) + '</b> &middot; Giorno <b>' + doy + '</b> su ' + tot;
+  el('anno_bar').style.width = pct + '%';
+  el('anno_txt').innerHTML = 'Anno trascorso: ' + pct + '% &mdash; mancano ' + (tot - doy) + ' giorni';
+  el('quote').innerHTML = esc(PENSIERI[doy % PENSIERI.length]);
+
+  renderList('todo');
+  renderProssime();
+}
+
+function renderProssime() {
+  var s = load('scad'), now = new Date(), r = [], i;
+  for (i = 0; i < s.length; i++) {
+    var n = diffDays(new Date(s[i].y, s[i].m - 1, s[i].d), now);
+    if (n >= 0) r.push({ t: s[i].t, n: n });
+  }
+  r.sort(function (a, b) { return a.n - b.n; });
+  var h = '';
+  for (i = 0; i < r.length && i < 3; i++) {
+    h += '<div class="hname" style="font-weight:normal;font-size:21px;"><span class="days' + (r[i].n <= 3 ? ' hot' : '') + '">' + daysTxt(r[i].n) + '</span>' + esc(r[i].t) + '</div><div style="clear:both;height:6px;"></div>';
+  }
+  if (!r.length) h = '<div class="small">Nessuna scadenza. Aggiungile da PI&Ugrave; &rarr; Scadenze.</div>';
+  el('prossime').innerHTML = h;
+}
+function daysTxt(n) {
+  if (n === 0) return 'OGGI';
+  if (n === 1) return 'domani';
+  if (n > 1) return 'tra ' + n + ' gg';
+  if (n === -1) return 'ieri';
+  return (-n) + ' gg fa';
+}
+
+/* ---------- LISTE (todo / spesa) ---------- */
+function renderList(k) {
+  var items = load(k), h = '', done = 0;
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i];
+    if (it.d) done++;
+    h += '<li><a href="#" class="del" onclick="delItem(\'' + k + '\',' + i + ');return false;">X</a>' +
+         '<a href="#" onclick="toggle(\'' + k + '\',' + i + ');return false;">' +
+         '<span class="box' + (it.d ? ' f' : '') + '">' + (it.d ? 'x' : '&nbsp;') + '</span>' +
+         '<span class="' + (it.d ? 'done' : '') + '">' + esc(it.t) + '</span></a></li>';
+  }
+  if (!items.length) h = '<li class="empty">Nessuna voce. Aggiungine una!</li>';
+  el(k + '_ul').innerHTML = h;
+  el(k + '_cnt').innerHTML = done + '/' + items.length;
+}
+function addItem(k, inputId) {
+  var inp = el(inputId), v = trim(inp.value);
+  if (!v) return;
+  var items = load(k);
+  items.push({ t: v, d: false });
+  save(k, items);
+  inp.value = '';
+  renderList(k);
+}
+function addTodo() { addItem('todo', 'todo_in'); }
+function addSpesa() { addItem('spesa', 'spesa_in'); }
+function toggle(k, i) { var a = load(k); a[i].d = !a[i].d; save(k, a); renderList(k); }
+function delItem(k, i) { var a = load(k); a.splice(i, 1); save(k, a); renderList(k); }
+function clearDone(k) {
+  var a = load(k), r = [];
+  for (var i = 0; i < a.length; i++) if (!a[i].d) r.push(a[i]);
+  save(k, r); renderList(k);
+}
+function clearAll(k) {
+  if (window.confirm('Svuotare tutta la lista?')) { save(k, []); renderList(k); }
+}
+function renderChips() {
+  var h = '';
+  for (var i = 0; i < CHIPS.length; i++) {
+    h += '<a href="#" onclick="quickAdd(' + i + ');return false;">+ ' + esc(CHIPS[i]) + '</a>';
+  }
+  el('chips').innerHTML = h;
+}
+function quickAdd(i) {
+  var items = load('spesa');
+  items.push({ t: CHIPS[i], d: false });
+  save('spesa', items);
+  renderList('spesa');
+}
+
+/* ---------- NOTE ---------- */
+function renderNote() {
+  var n = load('note'), h = '';
+  for (var i = n.length - 1; i >= 0; i--) {
+    h += '<div class="note"><div class="when">' + esc(n[i].w) + '</div>' + esc(n[i].t) +
+         '<br><a href="#" class="btn" onclick="delNote(' + i + ');return false;">Elimina</a></div>';
+  }
+  if (!n.length) h = '<div class="small">Nessuna nota salvata.</div>';
+  el('note_list').innerHTML = h;
+}
+function addNote() {
+  var inp = el('note_in'), v = trim(inp.value);
+  if (!v) return;
+  var d = new Date(), n = load('note');
+  n.push({ t: v, w: GIORNI[d.getDay()] + ' ' + d.getDate() + ' ' + MESI[d.getMonth()] + ' - ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) });
+  save('note', n);
+  inp.value = '';
+  renderNote();
+}
+function delNote(i) {
+  if (!window.confirm('Eliminare la nota?')) return;
+  var n = load('note'); n.splice(i, 1); save('note', n); renderNote();
+}
+
+/* ---------- MESE ---------- */
+function meseMove(dir) {
+  if (dir === 0) { var d = new Date(); viewY = d.getFullYear(); viewM = d.getMonth(); }
+  else { viewM += dir; if (viewM < 0) { viewM = 11; viewY--; } if (viewM > 11) { viewM = 0; viewY++; } }
+  renderMese();
+}
+function renderMese() {
+  el('mese_tit').innerHTML = MESI[viewM] + ' ' + viewY;
+  var first = new Date(viewY, viewM, 1);
+  var start = (first.getDay() + 6) % 7;
+  var days = new Date(viewY, viewM + 1, 0).getDate();
+  var now = new Date(), sc = load('scad'), evd = {}, evl = [], i;
+  for (i = 0; i < sc.length; i++) {
+    if (sc[i].y === viewY && sc[i].m - 1 === viewM) { evd[sc[i].d] = true; evl.push(sc[i]); }
+  }
+  evl.sort(function (a, b) { return a.d - b.d; });
+
+  var h = '<table class="cal"><tr>';
+  for (i = 0; i < 7; i++) h += '<th>' + GSHORT[i] + '</th>';
+  h += '</tr><tr>';
+  var c = 0;
+  for (i = 0; i < start; i++) { h += '<td>&nbsp;</td>'; c++; }
+  for (var day = 1; day <= days; day++) {
+    var isT = (day === now.getDate() && viewM === now.getMonth() && viewY === now.getFullYear());
+    var cls = [];
+    if (isT) cls.push('today');
+    else if (c % 7 >= 5) cls.push('we');
+    if (evd[day]) cls.push('ev');
+    h += '<td' + (cls.length ? ' class="' + cls.join(' ') + '"' : '') + '>' + day + '</td>';
+    c++;
+    if (c % 7 === 0 && day < days) h += '</tr><tr>';
+  }
+  while (c % 7 !== 0) { h += '<td>&nbsp;</td>'; c++; }
+  h += '</tr></table>';
+  el('cal').innerHTML = h;
+
+  var e = '';
+  if (evl.length) {
+    e = '<div class="card cardwrap" style="margin-top:14px;"><span class="tag">Scadenze del mese</span><ul style="margin-top:0;">';
+    for (i = 0; i < evl.length; i++) e += '<li><b>' + evl[i].d + '</b> &mdash; ' + esc(evl[i].t) + '</li>';
+    e += '</ul></div>';
+  }
+  el('mese_ev').innerHTML = e;
+}
+
+/* ---------- PIU: sezioni ---------- */
+function sub(s) {
+  subCur = s;
+  var all = ['scad', 'abit', 'calc'];
+  for (var i = 0; i < all.length; i++) {
+    el('sub_' + all[i]).style.display = (all[i] === s) ? 'block' : 'none';
+    el('s_' + all[i]).className = (all[i] === s) ? 'btn dark' : 'btn';
+  }
+  if (s === 'scad') renderScad();
+  if (s === 'abit') renderAbit();
+  if (s === 'calc') cShow();
+}
+
+/* ---------- Scadenze ---------- */
+function addScad() {
+  var t = trim(el('sc_t').value), ds = trim(el('sc_d').value), err = el('sc_err');
+  err.innerHTML = '';
+  if (!t || !ds) { err.innerHTML = 'Scrivi sia il nome sia la data.'; return; }
+  var p = ds.replace(/[\.\-]/g, '/').split('/');
+  var d = parseInt(p[0], 10), m = parseInt(p[1], 10), y = p[2] ? parseInt(p[2], 10) : 0;
+  if (isNaN(d) || isNaN(m) || d < 1 || d > 31 || m < 1 || m > 12) { err.innerHTML = 'Data non valida. Usa GG/MM/AAAA.'; return; }
+  var now = new Date();
+  if (!y) {
+    y = now.getFullYear();
+    if (diffDays(new Date(y, m - 1, d), now) < 0) y++;
+  } else if (y < 100) { y += 2000; }
+  var s = load('scad');
+  s.push({ t: t, y: y, m: m, d: d });
+  s.sort(function (a, b) { return new Date(a.y, a.m - 1, a.d) - new Date(b.y, b.m - 1, b.d); });
+  save('scad', s);
+  el('sc_t').value = ''; el('sc_d').value = '';
+  renderScad();
+}
+function renderScad() {
+  var s = load('scad'), now = new Date(), h = '';
+  for (var i = 0; i < s.length; i++) {
+    var n = diffDays(new Date(s[i].y, s[i].m - 1, s[i].d), now);
+    h += '<li><a href="#" class="del" onclick="delScad(' + i + ');return false;">X</a>' +
+         '<span class="days' + (n >= 0 && n <= 3 ? ' hot' : '') + '">' + daysTxt(n) + '</span>' +
+         '<span class="' + (n < 0 ? 'done' : '') + '">' + esc(s[i].t) + '</span>' +
+         '<div class="small">' + s[i].d + ' ' + MESI[s[i].m - 1] + ' ' + s[i].y + '</div></li>';
+  }
+  if (!s.length) h = '<li class="empty">Nessuna scadenza.</li>';
+  el('scad_ul').innerHTML = h;
+}
+function delScad(i) { var s = load('scad'); s.splice(i, 1); save('scad', s); renderScad(); }
+
+/* ---------- Abitudini ---------- */
+function weekStart() {
+  var d = new Date(), w = (d.getDay() + 6) % 7;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - w);
+}
+function addAbit() {
+  var v = trim(el('ab_in').value);
+  if (!v) return;
+  var a = load('abit');
+  a.push({ t: v, log: {} });
+  save('abit', a);
+  el('ab_in').value = '';
+  renderAbit();
+}
+function toggleAbit(i, k) {
+  var a = load('abit');
+  if (a[i].log[k]) delete a[i].log[k]; else a[i].log[k] = 1;
+  save('abit', a);
+  renderAbit();
+}
+function delAbit(i) {
+  if (!window.confirm('Eliminare questa abitudine?')) return;
+  var a = load('abit'); a.splice(i, 1); save('abit', a); renderAbit();
+}
+function renderAbit() {
+  var a = load('abit'), ws = weekStart(), todayK = dkey(new Date()), h = '', i, j;
+  for (i = 0; i < a.length; i++) {
+    var cnt = 0, row1 = '<tr>', row2 = '<tr>';
+    for (j = 0; j < 7; j++) {
+      var dd = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + j), k = dkey(dd);
+      var on = a[i].log[k] ? 1 : 0;
+      cnt += on;
+      row1 += '<td class="hd">' + GSHORT[j] + '</td>';
+      row2 += '<td><a href="#" class="' + (on ? 'f' : '') + (k === todayK ? ' t' : '') + '" onclick="toggleAbit(' + i + ',\'' + k + '\');return false;">' + (on ? 'x' : '&nbsp;') + '</a></td>';
+    }
+    h += '<div><a href="#" class="del" onclick="delAbit(' + i + ');return false;">X</a>' +
+         '<span class="count">' + cnt + '/7</span><div class="hname">' + esc(a[i].t) + '</div></div>' +
+         '<table class="wk">' + row1 + '</tr>' + row2 + '</tr></table>';
+  }
+  if (!a.length) h = '<div class="small">Nessuna abitudine. Aggiungine una sopra.</div>';
+  el('abit_list').innerHTML = h;
+}
+
+/* ---------- Calcolatrice ---------- */
+var cv = '0', ca = null, cop = null, cnew = true;
+var OPSYM = { '+': '+', '-': '\u2212', '*': '\u00d7', '/': '\u00f7' };
+function cFmt(r) {
+  if (!isFinite(r)) return 'Errore';
+  return String(parseFloat(r.toFixed(10)));
+}
+function cShow() {
+  el('c_disp').innerHTML = cv.replace('.', ',');
+  el('c_op').innerHTML = (ca !== null && cop) ? cFmt(ca).replace('.', ',') + ' ' + OPSYM[cop] : '';
+}
+function cClear() { cv = '0'; ca = null; cop = null; cnew = true; cShow(); }
+function cNum(n) {
+  if (cv === 'Errore') cClear();
+  if (cnew) { cv = n; cnew = false; }
+  else { if (cv.length > 12) return; cv = (cv === '0') ? n : cv + n; }
+  cShow();
+}
+function cDot() {
+  if (cv === 'Errore') cClear();
+  if (cnew) { cv = '0.'; cnew = false; }
+  else if (cv.indexOf('.') < 0) cv += '.';
+  cShow();
+}
+function cNeg() {
+  if (cv === 'Errore' || cv === '0') return;
+  cv = (cv.charAt(0) === '-') ? cv.substring(1) : '-' + cv;
+  cShow();
+}
+function cPct() {
+  if (cv === 'Errore') return;
+  cv = cFmt(parseFloat(cv) / 100); cnew = true; cShow();
+}
+function cCalc() {
+  var b = parseFloat(cv);
+  if (ca === null || !cop) return b;
+  if (cop === '+') return ca + b;
+  if (cop === '-') return ca - b;
+  if (cop === '*') return ca * b;
+  return b === 0 ? NaN : ca / b;
+}
+function cOp(o) {
+  if (cv === 'Errore') return;
+  if (cop && !cnew) { var r = cCalc(); cv = cFmt(r); ca = (cv === 'Errore') ? null : r; }
+  else ca = parseFloat(cv);
+  cop = o; cnew = true; cShow();
+}
+function cEq() {
+  if (cop && cv !== 'Errore') { cv = cFmt(cCalc()); ca = null; cop = null; cnew = true; }
+  cShow();
+}
+
+show('oggi');
+</script>
+</body>
+</html>
